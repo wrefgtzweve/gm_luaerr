@@ -55,10 +55,12 @@ jobs:
           cargo +nightly build --release --target ${{ matrix.target1 }}
           cargo +nightly build --release --target ${{ matrix.target2 }}
 
-      - name: Rename binaries
+      - name: Rename to gmsv_ and gmcl_
         run: |
-          mv target/${{ matrix.target1 }}/release/${{ matrix.binary_prefix }}/gmsv_luaerr.${{ matrix.file_ext }} target/${{ matrix.target1 }}/release/gmsv_luaerr${{ matrix.suffix32 }}
-          mv target/${{ matrix.target2 }}/release/${{ matrix.binary_prefix }}/gmsv_luaerr.${{ matrix.file_ext }} target/${{ matrix.target2 }}/release/gmsv_luaerr${{ matrix.suffix64 }}
+          cp target/${{ matrix.target1 }}/release/${{ matrix.binary_prefix }}/luaerr.${{ matrix.file_ext }} target/${{ matrix.target1 }}/release/gmcl_luaerr${{ matrix.suffix32 }}.dll
+          cp target/${{ matrix.target1 }}/release/${{ matrix.binary_prefix }}/luaerr.${{ matrix.file_ext }} target/${{ matrix.target2 }}/release/gmcl_luaerr${{ matrix.suffix64 }}.dll
+          cp target/${{ matrix.target1 }}/release/${{ matrix.binary_prefix }}/luaerr.${{ matrix.file_ext }} target/${{ matrix.target1 }}/release/gmsv_luaerr${{ matrix.suffix32 }}.dll
+          cp target/${{ matrix.target1 }}/release/${{ matrix.binary_prefix }}/luaerr.${{ matrix.file_ext }} target/${{ matrix.target2 }}/release/gmsv_luaerr${{ matrix.suffix64 }}.dll
 
       - name: Release Artifacts
         uses: ncipollo/release-action@v1
@@ -67,5 +69,7 @@ jobs:
           token: "${{ secrets.GITHUB_TOKEN }}"
           tag: "${{ steps.get_version.outputs.version }}"
           artifacts: |
-            target/${{ matrix.target1 }}/release/gmsv_luaerr${{ matrix.suffix32 }}
-            target/${{ matrix.target2 }}/release/gmsv_luaerr${{ matrix.suffix64 }}
+            target/${{ matrix.target1 }}/release/gmcl_luaerr${{ matrix.suffix32 }}.dll
+            target/${{ matrix.target2 }}/release/gmcl_luaerr${{ matrix.suffix64 }}.dll
+            target/${{ matrix.target1 }}/release/gmsv_luaerr${{ matrix.suffix32 }}.dll
+            target/${{ matrix.target2 }}/release/gmsv_luaerr${{ matrix.suffix64 }}.dll
