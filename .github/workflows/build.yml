@@ -57,8 +57,8 @@ jobs:
 
       - name: Rename binaries
         run: |
-          mv target/${{ matrix.target1 }}/release/${{ matrix.binary_prefix }}gmsv_luaerr.${{ matrix.file_ext }} target/${{ matrix.target1 }}/release/gmsv_luaerr_${{ matrix.suffix32 }}
-          mv target/${{ matrix.target2 }}/release/${{ matrix.binary_prefix }}gmsv_luaerr.${{ matrix.file_ext }} target/${{ matrix.target2 }}/release/gmsv_luaerr_${{ matrix.suffix64 }}
+          mv target/${{ matrix.target1 }}/release/${{ matrix.binary_prefix }}gmsv_luaerr.${{ matrix.file_ext }} target/${{ matrix.target1 }}/release/gmsv_luaerr${{ matrix.suffix32 }}
+          mv target/${{ matrix.target2 }}/release/${{ matrix.binary_prefix }}gmsv_luaerr.${{ matrix.file_ext }} target/${{ matrix.target2 }}/release/gmsv_luaerr${{ matrix.suffix64 }}
 
       - name: Release Artifacts
         uses: ncipollo/release-action@v1
@@ -67,5 +67,5 @@ jobs:
           token: "${{ secrets.GITHUB_TOKEN }}"
           tag: "${{ steps.get_version.outputs.version }}"
           artifacts: |
-            target/${{ matrix.target1 }}/release/gmsv_luaerr_${{ matrix.suffix32 }}
-            target/${{ matrix.target2 }}/release/gmsv_luaerr_${{ matrix.suffix64 }}
+            target/${{ matrix.target1 }}/release/gmsv_luaerr${{ matrix.suffix32 }}
+            target/${{ matrix.target2 }}/release/gmsv_luaerr${{ matrix.suffix64 }}
