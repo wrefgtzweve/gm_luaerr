@@ -66,8 +66,6 @@ jobs:
         uses: ncipollo/release-action@v1
         with:
           allowUpdates: true
-          token: "${{ secrets.GITHUB_TOKEN }}"
-          tag: "${{ steps.get_version.outputs.version }}"
           artifacts: |
             target/${{ matrix.target1 }}/release/gmcl_luaerr${{ matrix.suffix32 }}
             target/${{ matrix.target2 }}/release/gmcl_luaerr${{ matrix.suffix64 }}
