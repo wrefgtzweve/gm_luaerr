@@ -1,5 +1,7 @@
 # gm_luaerr
-A dll to detour debug.registry()[1] in lua
+A piss simple dll to detour debug.registry()[1] in lua
+
+The main goal of this is to allow you to get the local variables of the current stack frame when an error occurs without having to hook gmods error functions in C++ (wont break on updates).
 
 ## Example usage
 Prints the local variables of the current stack frame when an error occurs.
@@ -21,3 +23,7 @@ function luaerr.OnError( msg )
     end
 end
 ```
+
+## Credits
+- [gmod-rs](https://github.com/WilliamVenner/gmod-rs) for the rust gmod bindings
+- [goobie-sql](https://github.com/Srlion/goobie-sql/blob/master/.github/workflows/build-mysql.yml) for the rust build pipeline
