@@ -62,10 +62,16 @@ jobs:
           cp target/${{ matrix.target1 }}/release/${{ matrix.binary_prefix }}luaerr.${{ matrix.file_ext }} target/${{ matrix.target1 }}/release/gmsv_luaerr${{ matrix.suffix32 }}
           cp target/${{ matrix.target2 }}/release/${{ matrix.binary_prefix }}luaerr.${{ matrix.file_ext }} target/${{ matrix.target2 }}/release/gmsv_luaerr${{ matrix.suffix64 }}
 
+      - name: Generate release tag
+        id: tag
+        run: echo "release_tag=v$(date +'%Y.%m.%d')" >> $GITHUB_OUTPUT
+        shell: bash
+
       - name: Release Artifacts
         uses: ncipollo/release-action@v1
         with:
           allowUpdates: true
+          tag: ${{ steps.tag.outputs.release_tag }}
           artifacts: |
             target/${{ matrix.target1 }}/release/gmcl_luaerr${{ matrix.suffix32 }}
             target/${{ matrix.target2 }}/release/gmcl_luaerr${{ matrix.suffix64 }}
