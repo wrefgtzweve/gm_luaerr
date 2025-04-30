@@ -38,19 +38,22 @@ jobs:
           fetch-depth: "0"
 
       - name: Set up Rust
-        run: rustup toolchain install stable --profile minimal
+        run: rustup toolchain install nightly --profile minimal
+
+      - name: Set Rust nightly as default
+        run: rustup override set nightly
 
       - name: Install build dependencies
         if: matrix.os == 'linux'
         run: ${{ matrix.extra_deps }}
 
       - name: Add targets
-        run: rustup target add ${{ matrix.target1 }} ${{ matrix.target2 }}
+        run: rustup target add ${{ matrix.target1 }} ${{ matrix.target2 }} --toolchain nightly
 
       - name: Build targets
         run: |
-          cargo build --release --target ${{ matrix.target1 }}
-          cargo build --release --target ${{ matrix.target2 }}
+          cargo +nightly build --release --target ${{ matrix.target1 }}
+          cargo +nightly build --release --target ${{ matrix.target2 }}
 
       - name: Rename binaries
         run: |
