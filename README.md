@@ -26,4 +26,4 @@ end
 
 ## Credits
 - [gmod-rs](https://github.com/WilliamVenner/gmod-rs) for the rust gmod bindings
-- [goobie-sql](https://github.com/Srlion/goobie-sql/blob/master/.github/workflows/build-mysql.yml) for the rust build pipeline
+- [goobie-sql](https://github.com/Srlion/goobie-sql/blob/master/.github/workflows/build-mysql.yml) for part of the build workflow
