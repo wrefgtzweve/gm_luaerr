@@ -55,19 +55,12 @@ jobs:
           cargo +nightly build --release --target ${{ matrix.target1 }}
           cargo +nightly build --release --target ${{ matrix.target2 }}
 
-      - name: List files
-        run: |
-          ls -la target/${{ matrix.target1 }}/release/
-          ls -la target/${{ matrix.target1 }}/release/${{ matrix.binary_prefix }}/
-          ls -la target/${{ matrix.target2 }}/release/
-          ls -la target/${{ matrix.target2 }}/release/${{ matrix.binary_prefix }}/
-
       - name: Rename to gmsv_ and gmcl_
         run: |
-          cp target/${{ matrix.target1 }}/release/${{ matrix.binary_prefix }}/luaerr.${{ matrix.file_ext }} target/${{ matrix.target1 }}/release/gmcl_luaerr${{ matrix.suffix32 }}
-          cp target/${{ matrix.target2 }}/release/${{ matrix.binary_prefix }}/luaerr.${{ matrix.file_ext }} target/${{ matrix.target2 }}/release/gmcl_luaerr${{ matrix.suffix64 }}
-          cp target/${{ matrix.target1 }}/release/${{ matrix.binary_prefix }}/luaerr.${{ matrix.file_ext }} target/${{ matrix.target1 }}/release/gmsv_luaerr${{ matrix.suffix32 }}
-          cp target/${{ matrix.target2 }}/release/${{ matrix.binary_prefix }}/luaerr.${{ matrix.file_ext }} target/${{ matrix.target2 }}/release/gmsv_luaerr${{ matrix.suffix64 }}
+          cp target/${{ matrix.target1 }}/release/${{ matrix.binary_prefix }}luaerr.${{ matrix.file_ext }} target/${{ matrix.target1 }}/release/gmcl_luaerr${{ matrix.suffix32 }}
+          cp target/${{ matrix.target2 }}/release/${{ matrix.binary_prefix }}luaerr.${{ matrix.file_ext }} target/${{ matrix.target2 }}/release/gmcl_luaerr${{ matrix.suffix64 }}
+          cp target/${{ matrix.target1 }}/release/${{ matrix.binary_prefix }}luaerr.${{ matrix.file_ext }} target/${{ matrix.target1 }}/release/gmsv_luaerr${{ matrix.suffix32 }}
+          cp target/${{ matrix.target2 }}/release/${{ matrix.binary_prefix }}luaerr.${{ matrix.file_ext }} target/${{ matrix.target2 }}/release/gmsv_luaerr${{ matrix.suffix64 }}
 
       - name: Release Artifacts
         uses: ncipollo/release-action@v1
