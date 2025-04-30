@@ -1,121 +1,87 @@
-name: build
+name: Build and Release
 
 on:
   workflow_dispatch:
 
-env:
-  CARGO_TERM_COLOR: always
-  ACTIONS_RUNNER_FORCED_INTERNAL_NODE_VERSION: node16
-  ACTIONS_RUNNER_FORCE_ACTIONS_NODE_VERSION: node16
-  ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION: true
-
 jobs:
-  build_linux64:
-    runs-on: ubuntu-latest
-    container: quay.io/pypa/manylinux2014_x86_64
+  build:
+    permissions: write-all
+    strategy:
+      matrix:
+        os: [linux, windows]
+        include:
+          - os: linux
+            runs_on: ubuntu-22.04
+            target1: i686-unknown-linux-gnu
+            target2: x86_64-unknown-linux-gnu
+            extra_deps: |
+              sudo apt update
+              sudo apt install gcc-i686-linux-gnu
+              sudo apt install gcc-multilib
+            binary_prefix: "lib"
+            file_ext: "so"
+            suffix32: _linux.dll
+            suffix64: _linux64.dll
+          - os: windows
+            runs_on: windows-2022
+            target1: i686-pc-windows-msvc
+            target2: x86_64-pc-windows-msvc
+            extra_deps: ""
+            binary_prefix: ""
+            file_ext: "dll"
+            suffix32: _win32.dll
+            suffix64: _win64.dll
+    runs-on: ${{ matrix.runs_on }}
     steps:
-    - uses: actions/checkout@v2
-    - name: Install Rust
-      uses: actions-rs/toolchain@v1
-      with:
-        profile: minimal
-        toolchain: stable
-        target: x86_64-unknown-linux-gnu
-        default: true
-        override: true
-    - name: Build 64-bit
-      run: cargo build --release --target x86_64-unknown-linux-gnu
-    - name: Strip debug symbols
-      run: |
-        strip target/x86_64-unknown-linux-gnu/release/libgm_luaerr.so
-    - name: Rename binaries
-      run: |
-        mv target/x86_64-unknown-linux-gnu/release/libgm_luaerr.so target/x86_64-unknown-linux-gnu/release/gmsv_luaerr_linux64.dll
-    - name: Release
-      uses: softprops/action-gh-release@v1
-      with:
-        files: |
-          target/x86_64-unknown-linux-gnu/release/gmsv_luaerr_linux64.dll
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: "0"
 
-  build_linux32:
-    runs-on: ubuntu-latest
-    container: quay.io/pypa/manylinux2014_x86_64
-    steps:
-    - uses: actions/checkout@v2
-    - name: Install build dependencies
-      run: yum -y install glibc-devel.i686 libgcc.i686
-    - name: Install Rust
-      uses: actions-rs/toolchain@v1
-      with:
-        profile: minimal
-        toolchain: stable
-        target: i686-unknown-linux-gnu
-        default: true
-        override: true
-    - name: Build 32-bit
-      run: cargo build --release --target i686-unknown-linux-gnu
-    - name: Strip debug symbols
-      run: |
-        strip target/i686-unknown-linux-gnu/release/libgm_luaerr.so
-    - name: Rename binaries
-      run: |
-        mv target/i686-unknown-linux-gnu/release/libgm_luaerr.so target/i686-unknown-linux-gnu/release/gmsv_luaerr_linux.dll
-    - name: Release
-      uses: softprops/action-gh-release@v1
-      with:
-        files: |
-          target/i686-unknown-linux-gnu/release/gmsv_luaerr_linux.dll
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - uses: actions/download-artifact@v4
+        with:
+          name: version
+          run-id: ${{ github.event.workflow_run.id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
 
-  build_windows64:
-    runs-on: windows-latest
-    steps:
-    - uses: actions/checkout@v2
-    - name: Install Rust
-      uses: actions-rs/toolchain@v1
-      with:
-        profile: minimal
-        toolchain: stable
-        target: x86_64-pc-windows-msvc
-        default: true
-        override: true
-    - name: Build 64-bit
-      run: cargo build --release --target x86_64-pc-windows-msvc
-    - name: Rename binaries
-      run: |
-        mv target/x86_64-pc-windows-msvc/release/gm_luaerr.dll target/x86_64-pc-windows-msvc/release/gmsv_luaerr_win64.dll
-    - name: Release
-      uses: softprops/action-gh-release@v1
-      with:
-        files: |
-          target/x86_64-pc-windows-msvc/release/gmsv_luaerr_win64.dll
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Get version
+        id: get_version
+        shell: bash
+        run: |
+          echo "version=$(cat ../version.txt)" >> $GITHUB_OUTPUT
+          echo "version_major=$(cat ../version_major.txt)" >> $GITHUB_OUTPUT
 
-  build_windows32:
-    runs-on: windows-latest
-    steps:
-    - uses: actions/checkout@v2
-    - name: Install Rust
-      uses: actions-rs/toolchain@v1
-      with:
-        profile: minimal
-        toolchain: stable
-        target: i686-pc-windows-msvc
-        default: true
-        override: true
-    - name: Build 32-bit
-      run: cargo build --release --target i686-pc-windows-msvc
-    - name: Rename binaries
-      run: |
-        mv target/i686-pc-windows-msvc/release/gm_luaerr.dll target/i686-pc-windows-msvc/release/gmsv_luaerr_win32.dll
-    - name: Release
-      uses: softprops/action-gh-release@v1
-      with:
-        files: |
-          target/i686-pc-windows-msvc/release/gmsv_luaerr_win32.dll
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Set up Rust
+        run: rustup toolchain install stable --profile minimal
+
+      - name: Install build dependencies
+        if: matrix.os == 'linux'
+        run: ${{ matrix.extra_deps }}
+
+      - name: Add targets
+        run: rustup target add ${{ matrix.target1 }} ${{ matrix.target2 }}
+
+      - name: Install cargo-set-version
+        run: cargo install cargo-set-version
+
+      - name: Bump Cargo version
+        run: cargo set-version "${{ steps.get_version.outputs.version }}.0"
+
+      - name: Build targets
+        run: |
+          cargo build --release --target ${{ matrix.target1 }}
+          cargo build --release --target ${{ matrix.target2 }}
+
+      - name: Rename binaries
+        run: |
+          mv target/${{ matrix.target1 }}/release/${{ matrix.binary_prefix }}gmsv_luaerr.${{ matrix.file_ext }} target/${{ matrix.target1 }}/release/gmsv_luaerr_${{ steps.get_version.outputs.version_major }}${{ matrix.suffix32 }}
+          mv target/${{ matrix.target2 }}/release/${{ matrix.binary_prefix }}gmsv_luaerr.${{ matrix.file_ext }} target/${{ matrix.target2 }}/release/gmsv_luaerr_${{ steps.get_version.outputs.version_major }}${{ matrix.suffix64 }}
+
+      - name: Release Artifacts
+        uses: ncipollo/release-action@v1
+        with:
+          allowUpdates: true
+          token: "${{ secrets.GITHUB_TOKEN }}"
+          tag: "${{ steps.get_version.outputs.version }}"
+          artifacts: |
+            target/${{ matrix.target1 }}/release/gmsv_luaerr_${{ steps.get_version.outputs.version_major }}${{ matrix.suffix32 }}
+            target/${{ matrix.target2 }}/release/gmsv_luaerr_${{ steps.get_version.outputs.version_major }}${{ matrix.suffix64 }}
